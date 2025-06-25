@@ -16,6 +16,7 @@ struct RoutineListView: View {
     @State private var showingAddRoutine = false
     @State private var selectedRoutine: Routine? = nil
     @State private var showingCompletionModal = false
+    @State private var showingEditRoutine = false
 
     var body: some View {
         NavigationView {
@@ -36,6 +37,13 @@ struct RoutineListView: View {
                             Image(systemName: "checkmark.circle")
                         }
                     }
+                    .swipeActions(edge: .trailing) {
+                        Button("Edit") {
+                            selectedRoutine = routine
+                            showingEditRoutine = true
+                        }
+                        .tint(.blue)
+                    }
                 }
             }
             .navigationTitle("My Routines")
@@ -51,6 +59,12 @@ struct RoutineListView: View {
             .sheet(isPresented: $showingCompletionModal) {
                 if let routine = selectedRoutine {
                     CompletionModal(routine: routine, isPresented: $showingCompletionModal)
+                        .environment(\.managedObjectContext, viewContext)
+                }
+            }
+            .sheet(isPresented: $showingEditRoutine) {
+                if let routine = selectedRoutine {
+                    EditRoutineView(routine: routine)
                         .environment(\.managedObjectContext, viewContext)
                 }
             }
