@@ -15,6 +15,8 @@ struct AddRoutineView: View {
     @State private var recurrenceType: String = "interval"
     @State private var recurrenceValue: Int = 4
     @State private var firstDueDate: Date = Date()
+    @State private var hour: Int = 20
+    @State private var minute: Int = 0
 
     var body: some View {
         NavigationView {
@@ -32,6 +34,16 @@ struct AddRoutineView: View {
                         Text("Every \(recurrenceValue) days")
                     }
                     DatePicker("First Due Date", selection: $firstDueDate, displayedComponents: .date)
+                    DatePicker("Time of Day", selection: Binding(
+                        get: {
+                            Calendar.current.date(from: DateComponents(hour: hour, minute: minute)) ?? Date()
+                        },
+                        set: {
+                            let components = Calendar.current.dateComponents([.hour, .minute], from: $0)
+                            hour = components.hour ?? 20
+                            minute = components.minute ?? 0
+                        }
+                    ), displayedComponents: .hourAndMinute)
                 }
             }
             .navigationTitle("New Routine")
@@ -47,6 +59,8 @@ struct AddRoutineView: View {
                         newRoutine.firstDueDate = firstDueDate
                         newRoutine.createdAt = Date()
                         newRoutine.nextDueDate = firstDueDate
+                        newRoutine.hour = Int16(hour)
+                        newRoutine.minute = Int16(minute)
                         try? viewContext.save()
                         dismiss()
                     }
