@@ -9,7 +9,7 @@ This document tracks planned features for version 1 of the Routinier app.
 - Statistics and Settings placeholder screens
 - Basic model validation tests
 - Create completion modal
-- Edit existing routines
+- Edit and delete existing routines
 
 ## 🔜 Planned
 
@@ -22,9 +22,6 @@ This document tracks planned features for version 1 of the Routinier app.
 - Use local notifications for reminders
 - Schedule next due date alerts
 - Handle app permission prompts gracefully
-
-### Routine Deletion
-- Confirmation before deletion
 
 ### Shared Routines (for v2+)
 - Cloud sync support (FastAPI backend)

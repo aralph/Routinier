@@ -44,6 +44,16 @@ struct RoutineListView: View {
                         }
                         .tint(.blue)
                     }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            withAnimation {
+                                viewContext.delete(routine)
+                                try? viewContext.save()
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                 }
             }
             .navigationTitle("My Routines")
