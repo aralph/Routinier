@@ -14,6 +14,8 @@ public class Routine: NSManagedObject {
     @NSManaged public var category: String?
     @NSManaged public var recurrenceType: String  // "interval" or "calendar"
     @NSManaged public var recurrenceValue: Int32  // number of days or day of month
+    @NSManaged public var hour: Int16
+    @NSManaged public var minute: Int16
     @NSManaged public var firstDueDate: Date?
     @NSManaged public var nextDueDate: Date
     @NSManaged public var createdAt: Date
