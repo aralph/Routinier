@@ -8,30 +8,25 @@ This document tracks planned features for version 1 of the Routinier app.
 - SwiftUI interface for listing, creating, and completing routines
 - Statistics and Settings placeholder screens
 - Basic model validation tests
+- Create completion modal
+- Edit existing routines
 
 ## 🔜 Planned
 
-### 1. Completion Modal
-- Show confirmation screen after user marks routine as done
-- Allow editing of recurrence rule inline
-- Optionally set manual completion timestamp
-
-### 2. Fulfillment Stats
+### Fulfillment Stats
 - Track completion history
 - Calculate fulfillment rate and missed sessions
 - Visual feedback (e.g. progress bars, streaks)
 
-### 3. Notification Scheduling
+### Notification Scheduling
 - Use local notifications for reminders
 - Schedule next due date alerts
 - Handle app permission prompts gracefully
 
-### 4. Routine Editing
-- Ability to edit existing routines
-- Update recurrence rule or due dates
+### Routine Deletion
 - Confirmation before deletion
 
-### 5. Shared Routines (for v2+)
+### Shared Routines (for v2+)
 - Cloud sync support (FastAPI backend)
 - Multi-user sharing of routines
 - Authentication and account management
