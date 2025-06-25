@@ -26,6 +26,9 @@ struct MainTabView: View {
                     Label("Settings", systemImage: "gear")
                 }
         }
+        .onAppear {
+            NotificationService.shared.requestPermission()
+        }
     }
 }
 
