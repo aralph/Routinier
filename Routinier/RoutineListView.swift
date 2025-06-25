@@ -5,6 +5,7 @@
 
 import SwiftUI
 
+// MARK: - Routine List View
 struct RoutineListView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @FetchRequest(
@@ -13,6 +14,8 @@ struct RoutineListView: View {
     private var routines: FetchedResults<Routine>
 
     @State private var showingAddRoutine = false
+    @State private var selectedRoutine: Routine? = nil
+    @State private var showingCompletionModal = false
 
     var body: some View {
         NavigationView {
@@ -27,8 +30,8 @@ struct RoutineListView: View {
                         }
                         Spacer()
                         Button(action: {
-                            routine.markCompleted()
-                            try? viewContext.save()
+                            selectedRoutine = routine
+                            showingCompletionModal = true
                         }) {
                             Image(systemName: "checkmark.circle")
                         }
@@ -44,6 +47,12 @@ struct RoutineListView: View {
             .sheet(isPresented: $showingAddRoutine) {
                 AddRoutineView()
                     .environment(\.managedObjectContext, viewContext)
+            }
+            .sheet(isPresented: $showingCompletionModal) {
+                if let routine = selectedRoutine {
+                    CompletionModal(routine: routine, isPresented: $showingCompletionModal)
+                        .environment(\.managedObjectContext, viewContext)
+                }
             }
         }
     }
