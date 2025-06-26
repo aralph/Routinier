@@ -45,6 +45,7 @@ extension Routine {
         case "interval":
             self.nextDueDate = Calendar.current.date(byAdding: .day, value: Int(self.recurrenceValue), to: date) ?? date
         case "calendar":
+            // TODO hardcoded to montly from original version
             let next = Calendar.current.date(byAdding: .month, value: 1, to: date) ?? date
             let comps = Calendar.current.dateComponents([.year, .month], from: next)
             self.nextDueDate = Calendar.current.date(from: DateComponents(year: comps.year, month: comps.month, day: Int(self.recurrenceValue))) ?? next

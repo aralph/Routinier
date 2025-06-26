@@ -29,6 +29,9 @@ struct AddRoutineView: View {
                     Picker("Type", selection: $recurrenceType) {
                         Text("Every X days").tag("interval")
                         Text("Monthly").tag("calendar")
+                        // TODO extend
+                        // Text("Weekly").tag("calendar")
+                        // Text("Yearly").tag("yearly")
                     }
                     Stepper(value: $recurrenceValue, in: 1...31) {
                         Text("Every \(recurrenceValue) days")
