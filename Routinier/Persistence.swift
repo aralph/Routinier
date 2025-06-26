@@ -15,13 +15,14 @@ struct PersistenceController {
         for _ in 0..<10 {
             let entity = NSEntityDescription.entity(forEntityName: "Routine", in: viewContext)!
             let newRoutine = Routine(entity: entity, insertInto: viewContext)
-            //let newRoutine = Routine(context: viewContext)
             newRoutine.id = UUID()
             newRoutine.name = "Sample"
             newRoutine.recurrenceType = "interval"
             newRoutine.recurrenceValue = 4
             newRoutine.firstDueDate = Date()
             newRoutine.createdAt = Date()
+            newRoutine.hour = 8
+            newRoutine.minute = 0
             newRoutine.nextDueDate = Date()
         }
         do {
