@@ -8,6 +8,8 @@ import SwiftUI
 // MARK: - Routine List View
 struct RoutineListView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject var notificationRouter: NotificationRouter
+    
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Routine.nextDueDate, ascending: true)],
         animation: .default)
@@ -17,6 +19,7 @@ struct RoutineListView: View {
     @State private var selectedRoutine: Routine? = nil
     @State private var showingCompletionModal = false
     @State private var showingEditRoutine = false
+    @State private var routineToOpen: Routine? = nil
 
     var body: some View {
         NavigationView {
@@ -78,6 +81,14 @@ struct RoutineListView: View {
                     EditRoutineView(routine: routine)
                         .environment(\.managedObjectContext, viewContext)
                 }
+            }
+            .onChange(of: notificationRouter.selectedRoutineID) { newID in
+                if let id = newID, let match = routines.first(where: { $0.id == id }) {
+                    routineToOpen = match
+                }
+            }
+            .sheet(item: $routineToOpen) { routine in
+                RoutineDetailView(routine: routine)
             }
         }
     }

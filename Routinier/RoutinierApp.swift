@@ -7,12 +7,19 @@ import SwiftUI
 
 @main
 struct RoutinierApp: App {
-    let persistenceController = PersistenceController.shared
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var notificationRouter = NotificationRouter()
+    init() {
+        AppDelegate.notificationRouter = notificationRouter
+    }
 
     var body: some Scene {
         WindowGroup {
             MainTabView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environmentObject(notificationRouter)
+                .onAppear {
+                    NotificationService.shared.requestPermission()
+                }
         }
     }
 }
