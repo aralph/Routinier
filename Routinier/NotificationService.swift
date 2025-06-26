@@ -20,7 +20,7 @@ class NotificationService {
     }
 
     func scheduleNotification(for routine: Routine) {
-        guard let id = routine.id?.uuidString else { return }
+        let id = routine.id.uuidString
 
         let content = UNMutableNotificationContent()
         content.title = "Routine Reminder"
@@ -42,7 +42,7 @@ class NotificationService {
     }
 
     func cancelNotification(for routine: Routine) {
-        guard let id = routine.id?.uuidString else { return }
+        let id = routine.id.uuidString
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
     }
 }
