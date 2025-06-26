@@ -48,18 +48,22 @@ struct EditRoutineView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
+                        NotificationService.shared.cancelNotification(for: routine)
+
                         routine.name = name
                         routine.descriptionText = descriptionText
                         routine.recurrenceType = recurrenceType
                         routine.recurrenceValue = Int32(recurrenceValue)
                         routine.firstDueDate = firstDueDate
-
+                        routine.nextDueDate = firstDueDate
                         let calendar = Calendar.current
                         let dateParts = calendar.dateComponents([.hour, .minute], from: timeOfDay)
                         routine.hour = Int16(dateParts.hour ?? 0)
                         routine.minute = Int16(dateParts.minute ?? 0)
 
                         try? viewContext.save()
+
+                        NotificationService.shared.scheduleNotification(for: routine)
                         dismiss()
                     }
                 }

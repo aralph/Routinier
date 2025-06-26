@@ -32,7 +32,9 @@ struct CompletionModal: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         routine.recurrenceValue = recurrenceValue
+                        NotificationService.shared.cancelNotification(for: routine)
                         routine.markCompleted()
+                        NotificationService.shared.scheduleNotification(for: routine)
                         try? viewContext.save()
                         isPresented = false
                     }

@@ -58,3 +58,29 @@ struct MainTabView_Previews: PreviewProvider {
         MainTabView()
     }
 }
+
+struct NotificationDebugView: View {
+    @State private var pending = [UNNotificationRequest]()
+
+    var body: some View {
+        List(pending, id: \.identifier) { request in
+            VStack(alignment: .leading) {
+                Text(request.content.title).bold()
+                Text(request.content.body)
+                if let trigger = request.trigger as? UNCalendarNotificationTrigger {
+                    Text("Trigger date: \(trigger.nextTriggerDate()?.description ?? "nil")")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+            }
+        }
+        .onAppear {
+            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                DispatchQueue.main.async {
+                    pending = requests
+                }
+            }
+        }
+        .navigationTitle("Scheduled Notifications")
+    }
+}

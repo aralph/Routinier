@@ -62,6 +62,7 @@ struct AddRoutineView: View {
                         newRoutine.hour = Int16(hour)
                         newRoutine.minute = Int16(minute)
                         try? viewContext.save()
+                        NotificationService.shared.scheduleNotification(for: newRoutine)
                         dismiss()
                     }
                 }

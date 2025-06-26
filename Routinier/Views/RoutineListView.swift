@@ -47,6 +47,7 @@ struct RoutineListView: View {
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
                             withAnimation {
+                                NotificationService.shared.cancelNotification(for: routine)
                                 viewContext.delete(routine)
                                 try? viewContext.save()
                             }
