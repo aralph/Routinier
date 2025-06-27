@@ -16,8 +16,7 @@ struct RoutineListView: View {
     private var routines: FetchedResults<Routine>
 
     @State private var showingAddRoutine = false
-    @State private var selectedRoutine: Routine? = nil
-    @State private var showingCompletionModal = false
+    @State private var selectedRoutine: Routine?
     @State private var showingEditRoutine = false
     @State private var routineToOpen: Routine? = nil
 
@@ -35,7 +34,6 @@ struct RoutineListView: View {
                         Spacer()
                         Button(action: {
                             selectedRoutine = routine
-                            showingCompletionModal = true
                         }) {
                             Image(systemName: "checkmark.circle")
                         }
@@ -70,11 +68,11 @@ struct RoutineListView: View {
                 AddRoutineView()
                     .environment(\.managedObjectContext, viewContext)
             }
-            .sheet(isPresented: $showingCompletionModal) {
-                if let routine = selectedRoutine {
-                    CompletionModal(routine: routine, isPresented: $showingCompletionModal)
-                        .environment(\.managedObjectContext, viewContext)
-                }
+            .sheet(item: $selectedRoutine) { routine in
+                CompletionModal(routine: routine, isPresented: Binding(
+                    get: { selectedRoutine != nil },
+                    set: { if !$0 { selectedRoutine = nil } }
+                ))
             }
             .sheet(isPresented: $showingEditRoutine) {
                 if let routine = selectedRoutine {
