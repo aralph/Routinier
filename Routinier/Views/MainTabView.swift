@@ -7,7 +7,7 @@
 // Core UI for viewing, adding, and completing routines
 
 import SwiftUI
-//import CoreData
+import Charts
 
 // MARK: - Main Tab View
 struct MainTabView: View {
@@ -32,13 +32,45 @@ struct MainTabView: View {
     }
 }
 
-// MARK: - Placeholder Views
+// MARK: - Stats View
 struct StatsView: View {
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Routine.name, ascending: true)],
+        animation: .default)
+    private var routines: FetchedResults<Routine>
+
     var body: some View {
-        Text("Stats Coming Soon")
+        NavigationView {
+            VStack(alignment: .leading) {
+                Text("Routine Fulfillment")
+                    .font(.title2)
+                    .padding(.horizontal)
+
+                let routineData: [(name: String, rate: Double)] = routines.map { routine in
+                    (routine.name, routine.fulfillmentRate * 100)
+                }
+
+                Chart {
+                    ForEach(routineData, id: \.name) { item in
+                        BarMark(
+                            x: .value("Routine", item.name),
+                            y: .value("Fulfillment", item.rate)
+                        )
+                        .foregroundStyle(.blue)
+                        .accessibilityLabel("\(item.name): \(Int(item.rate)) percent fulfilled")
+                    }
+                }
+                .chartYAxisLabel("% Completed")
+                .chartYScale(domain: 0...100)
+                .padding()
+            }
+            .navigationTitle("Stats")
+        }
     }
 }
 
+
+// MARK: - Placeholder Views
 struct SettingsView: View {
     var body: some View {
         Text("Settings Coming Soon")
