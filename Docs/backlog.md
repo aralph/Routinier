@@ -10,6 +10,7 @@ This document tracks planned features for version 1 of the Routinier app.
 - Basic model validation tests
 - Create completion modal
 - Edit and delete existing routines
+- Scheduled notifications on next due date
 
 ## 🔜 Planned
 
@@ -17,11 +18,6 @@ This document tracks planned features for version 1 of the Routinier app.
 - Track completion history
 - Calculate fulfillment rate and missed sessions
 - Visual feedback (e.g. progress bars, streaks)
-
-### Notification Scheduling
-- Use local notifications for reminders
-- Schedule next due date alerts
-- Handle app permission prompts gracefully
 
 ### Shared Routines (for v2+)
 - Cloud sync support (FastAPI backend)
