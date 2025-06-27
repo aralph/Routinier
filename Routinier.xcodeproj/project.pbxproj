@@ -30,9 +30,33 @@
 		C6C9327A2E0C3EB100375DDC /* Routinier.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Routinier.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C600C8222E0DE8DA001247CB /* Exceptions for "Routinier" folder in "Routinier" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				PreviewData.swift,
+			);
+			target = C673FD0F2E0B5AD300499953 /* Routinier */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		C600C8232E0DE8DA001247CB /* Exceptions for "Routinier" folder in "Copy Bundle Resources" phase from "Routinier" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = C673FD0E2E0B5AD300499953 /* Resources */;
+			membershipExceptions = (
+				PreviewData.swift,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C673FD122E0B5AD300499953 /* Routinier */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C600C8222E0DE8DA001247CB /* Exceptions for "Routinier" folder in "Routinier" target */,
+				C600C8232E0DE8DA001247CB /* Exceptions for "Routinier" folder in "Copy Bundle Resources" phase from "Routinier" target */,
+			);
 			path = Routinier;
 			sourceTree = "<group>";
 		};
