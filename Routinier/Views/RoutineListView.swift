@@ -9,16 +9,26 @@ import SwiftUI
 struct RoutineListView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var notificationRouter: NotificationRouter
-    
+
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Routine.nextDueDate, ascending: true)],
         animation: .default)
     private var routines: FetchedResults<Routine>
 
-    @State private var showingAddRoutine = false
-    @State private var selectedRoutine: Routine?
-    @State private var showingEditRoutine = false
-    @State private var routineToOpen: Routine? = nil
+    enum ActiveSheet: Identifiable {
+        case add, complete(Routine), edit(Routine), detail(Routine)
+
+        var id: String {
+            switch self {
+            case .add: return "add"
+            case .complete(let r): return "complete_\(r.id)"
+            case .edit(let r): return "edit_\(r.id)"
+            case .detail(let r): return "detail_\(r.id)"
+            }
+        }
+    }
+
+    @State private var activeSheet: ActiveSheet?
 
     var body: some View {
         NavigationView {
@@ -33,15 +43,14 @@ struct RoutineListView: View {
                         }
                         Spacer()
                         Button(action: {
-                            selectedRoutine = routine
+                            activeSheet = .complete(routine)
                         }) {
                             Image(systemName: "checkmark.circle")
                         }
                     }
                     .swipeActions(edge: .trailing) {
                         Button("Edit") {
-                            selectedRoutine = routine
-                            showingEditRoutine = true
+                            activeSheet = .edit(routine)
                         }
                         .tint(.blue)
                     }
@@ -60,33 +69,32 @@ struct RoutineListView: View {
             }
             .navigationTitle("My Routines")
             .toolbar {
-                Button(action: { showingAddRoutine.toggle() }) {
+                Button(action: { activeSheet = .add }) {
                     Label("Add Routine", systemImage: "plus")
                 }
             }
-            .sheet(isPresented: $showingAddRoutine) {
-                AddRoutineView()
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet {
+                case .add:
+                    AddRoutineView()
+                        .environment(\.managedObjectContext, viewContext)
+                case .complete(let routine):
+                    CompletionModal(routine: routine, isPresented: Binding(
+                        get: { activeSheet != nil },
+                        set: { if !$0 { activeSheet = nil } }
+                    ))
                     .environment(\.managedObjectContext, viewContext)
-            }
-            .sheet(item: $selectedRoutine) { routine in
-                CompletionModal(routine: routine, isPresented: Binding(
-                    get: { selectedRoutine != nil },
-                    set: { if !$0 { selectedRoutine = nil } }
-                ))
-            }
-            .sheet(isPresented: $showingEditRoutine) {
-                if let routine = selectedRoutine {
+                case .edit(let routine):
                     EditRoutineView(routine: routine)
                         .environment(\.managedObjectContext, viewContext)
+                case .detail(let routine):
+                    RoutineDetailView(routine: routine)
                 }
             }
             .onChange(of: notificationRouter.selectedRoutineID) { newID in
                 if let id = newID, let match = routines.first(where: { $0.id == id }) {
-                    routineToOpen = match
+                    activeSheet = .detail(match)
                 }
-            }
-            .sheet(item: $routineToOpen) { routine in
-                RoutineDetailView(routine: routine)
             }
         }
     }
