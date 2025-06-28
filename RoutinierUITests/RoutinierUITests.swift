@@ -20,20 +20,86 @@ final class RoutinierUITests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
+    
+    func addTestRoutine(app: XCUIApplication) {
+        // Tap "Add Routine" button
+        app.buttons["Add Routine"].tap()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+        // Fill in the fields
+        let nameField = app.textFields["Name"]
+        XCTAssertTrue(nameField.exists)
+        nameField.tap()
+        nameField.typeText("Test Routine")
+
+        let descriptionField = app.textFields["Description"]
+        XCTAssertTrue(descriptionField.exists)
+        descriptionField.tap()
+        descriptionField.typeText("A simple test")
+
+        // Confirm save
+        app.buttons["Save"].tap()
     }
-
+    
+    func cleanStateNoTestRoutines(app: XCUIApplication) {
+        // Clean state: If "Test Routine" exists, delete it
+        let testRoutine = app.staticTexts["Test Routine"]
+        if testRoutine.waitForExistence(timeout: 1) {
+            testRoutine.swipeLeft()
+            let deleteButton = app.buttons["Delete"]
+            if deleteButton.waitForExistence(timeout: 1) {
+                deleteButton.tap()
+            }
+        }
+    }
+    
     @MainActor
     func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
+        let threshold: TimeInterval = 5.0 // seconds
+        let app = XCUIApplication()
+
+        let startTime = Date()
+        app.launch()
+        let launchTime = Date().timeIntervalSince(startTime)
+
+        print("Launch time: \(launchTime) seconds")
+        XCTAssertLessThan(launchTime, threshold, "App launch took too long: \(launchTime) seconds")
+    }
+    
+    func testAddRoutineFlow() throws {
+        let app = XCUIApplication()
+        app.launch()
+        
+        cleanStateNoTestRoutines(app: app)
+
+        addTestRoutine(app: app)
+
+        // Check if it appears in the list
+        let routineCell = app.staticTexts["Test Routine"]
+        XCTAssertTrue(routineCell.waitForExistence(timeout: 2))
+        
+        // Clean up: swipe to delete
+        routineCell.swipeLeft()
+        let deleteButton = app.buttons["Delete"]
+        XCTAssertTrue(deleteButton.exists)
+        deleteButton.tap()
+    }
+
+    func testSwipeToEditAndDelete() throws {
+        let app = XCUIApplication()
+        app.launch()
+        
+        addTestRoutine(app: app)
+
+        let routineCell = app.staticTexts["Test Routine"]
+        XCTAssertTrue(routineCell.exists)
+
+        // Swipe left to reveal edit and delete
+        routineCell.swipeLeft()
+
+        let editButton = app.buttons["Edit"]
+        XCTAssertTrue(editButton.exists)
+
+        let deleteButton = app.buttons["Delete"]
+        XCTAssertTrue(deleteButton.exists)
     }
 }
