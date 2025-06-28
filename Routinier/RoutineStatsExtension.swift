@@ -11,7 +11,6 @@ extension Routine {
     /// Returns a value from 0.0 to 1.0
     var fulfillmentRate: Double {
         guard let firstDue = firstDueDate else { return 0.0 }
-        let created = createdAt
         let completions = self.completions
         if completions.isEmpty { return 0.0 }
 
@@ -51,6 +50,6 @@ extension Routine {
     }
 
     var completionCount: Int {
-        return (self.completions as? Set<Completion>)?.count ?? 0
+        return self.completions.count
     }
 }
