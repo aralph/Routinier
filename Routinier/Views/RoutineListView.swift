@@ -36,16 +36,37 @@ struct RoutineListView: View {
                 ForEach(routines) { routine in
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(routine.name)
-                                .font(.headline)
-                            Text("Due: \(routine.nextDueDate, formatter: dateFormatter)")
-                                .font(.subheadline)
+                            HStack {
+                                Text(routine.name)
+                                    .font(.headline)
+                                
+                                // Sharing indicator
+                                if routine.isShared {
+                                    Image(systemName: routine.sharingStatusIcon)
+                                        .foregroundColor(.blue)
+                                        .font(.caption)
+                                }
+                            }
+                            
+                            HStack {
+                                Text("Due: \(routine.nextDueDate, formatter: dateFormatter)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                
+                                // Sharing status text for shared routines
+                                if routine.isShared {
+                                    Text("• \(routine.sharingStatusText)")
+                                        .font(.caption)
+                                        .foregroundColor(.blue)
+                                }
+                            }
                         }
                         Spacer()
                         Button(action: {
                             activeSheet = .complete(routine)
                         }) {
                             Image(systemName: "checkmark.circle")
+                                .foregroundColor(routine.isShared ? .blue : .accentColor)
                         }
                     }
                     .swipeActions(edge: .trailing) {
