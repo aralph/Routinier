@@ -17,21 +17,22 @@ extension Routine {
         let calendar = Calendar.current
         let now = Date()
         var expectedDates: [Date] = []
-        var next = firstDue
+        var nextDueDate = firstDue
 
-        while next <= now {
-            expectedDates.append(next)
+        while nextDueDate <= now {
+            expectedDates.append(nextDueDate)
             switch recurrenceType {
             case "interval":
-                next = calendar.date(byAdding: .day, value: Int(recurrenceValue), to: next) ?? next
+                nextDueDate = calendar.date(byAdding: .day, value: Int(recurrenceValue), to: nextDueDate) ?? nextDueDate
             case "weekly":
-                next = calendar.date(byAdding: .weekOfYear, value: 1, to: next) ?? next
+                nextDueDate = calendar.date(byAdding: .weekOfYear, value: 1, to: nextDueDate) ?? nextDueDate
             case "monthly":
-                next = calendar.date(byAdding: .month, value: 1, to: next) ?? next
+                nextDueDate = calendar.date(byAdding: .month, value: 1, to: nextDueDate) ?? nextDueDate
             case "yearly":
-                next = calendar.date(byAdding: .year, value: 1, to: next) ?? next
+                nextDueDate = calendar.date(byAdding: .year, value: 1, to: nextDueDate) ?? nextDueDate
             default:
-                break
+                print("Invalid recurrence type \(recurrenceType)")
+                return 0.0
             }
         }
 
