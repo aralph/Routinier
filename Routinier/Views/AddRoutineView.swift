@@ -63,6 +63,12 @@ struct AddRoutineView: View {
                         newRoutine.nextDueDate = firstDueDate
                         newRoutine.hour = Int16(hour)
                         newRoutine.minute = Int16(minute)
+                        
+                        // Initialize sharing properties
+                        newRoutine.isShared = false
+                        newRoutine.lastModified = Date()
+                        newRoutine.ownerId = nil
+                        newRoutine.cloudKitShareData = nil
                         try? viewContext.save()
                         NotificationService.shared.scheduleNotification(for: newRoutine)
                         dismiss()

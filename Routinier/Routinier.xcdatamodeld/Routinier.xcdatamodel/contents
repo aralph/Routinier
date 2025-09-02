@@ -7,14 +7,18 @@
     </entity>
     <entity name="Routine" representedClassName=".Routine" syncable="YES">
         <attribute name="category" optional="YES" attributeType="String"/>
+        <attribute name="cloudKitShareData" optional="YES" attributeType="Binary Data"/>
         <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="descriptionText" optional="YES" attributeType="String"/>
         <attribute name="firstDueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="hour" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isShared" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="lastModified" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="minute" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="nextDueDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="ownerId" optional="YES" attributeType="String"/>
         <attribute name="recurrenceType" attributeType="String"/>
         <attribute name="recurrenceValue" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="completions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Completion" inverseName="routine" inverseEntity="Completion"/>

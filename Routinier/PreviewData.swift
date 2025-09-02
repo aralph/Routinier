@@ -24,6 +24,12 @@ extension PersistenceController {
             routine.nextDueDate = Calendar.current.date(byAdding: .day, value: 4, to: Date()) ?? Date()
             routine.hour = 9
             routine.minute = 0
+            
+            // Initialize sharing properties
+            routine.isShared = false
+            routine.lastModified = Date()
+            routine.ownerId = nil
+            routine.cloudKitShareData = nil
         }
 
         do {

@@ -20,6 +20,12 @@ public class Routine: NSManagedObject {
     @NSManaged public var nextDueDate: Date
     @NSManaged public var createdAt: Date
     @NSManaged public var completions: Set<Completion>
+    
+    // Sharing properties
+    @NSManaged public var isShared: Bool
+    @NSManaged public var lastModified: Date
+    @NSManaged public var ownerId: String?
+    @NSManaged public var cloudKitShareData: Data?
 }
 
 @objc(Completion)
@@ -52,6 +58,9 @@ extension Routine {
         default:
             self.nextDueDate = date
         }
+        
+        // Update last modified for CloudKit sync
+        self.lastModified = date
     }
 }
 
