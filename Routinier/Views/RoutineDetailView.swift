@@ -4,16 +4,165 @@
 //
 
 import SwiftUI
+import CloudKit
 
 struct RoutineDetailView: View {
     let routine: Routine
+    @Environment(\.managedObjectContext) private var viewContext
+    @StateObject private var cloudKitManager = CloudKitManager.shared
+    @State private var showingShareSheet = false
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
 
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
             Text(routine.name)
                 .font(.largeTitle)
+            
             Text("Due: \(routine.nextDueDate, formatter: dateFormatter)")
+                .font(.title2)
+            
+            // Sharing status section
+            VStack(spacing: 10) {
+                HStack {
+                    Image(systemName: routine.sharingStatusIcon)
+                        .foregroundColor(routine.isShared ? .blue : .gray)
+                    Text(routine.sharingStatusText)
+                        .foregroundColor(routine.isShared ? .blue : .gray)
+                }
+                
+                if routine.isShared && !routine.isOwnedByCurrentUser {
+                    Text("Shared by another user")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Spacer()
         }
         .padding()
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    if routine.canBeShared {
+                        Button("Share Routine", action: shareRoutine)
+                    }
+                    
+                    if routine.isShared && routine.isOwnedByCurrentUser {
+                        Button("Stop Sharing", role: .destructive, action: stopSharing)
+                    }
+                    
+                    if routine.isShared && !routine.isOwnedByCurrentUser {
+                        Button("Leave Shared Routine", role: .destructive, action: leaveSharedRoutine)
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
+        .sheet(isPresented: $showingShareSheet) {
+            ShareSheet(routine: routine)
+        }
+        .alert("Sharing Status", isPresented: $showingAlert) {
+            Button("OK") { }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+    
+    // MARK: - Sharing Actions
+    
+    private func shareRoutine() {
+        guard cloudKitManager.isCloudKitEnabled else {
+            alertMessage = "CloudKit is not available. Please check your iCloud settings."
+            showingAlert = true
+            return
+        }
+        
+        routine.prepareForSharing()
+        
+        do {
+            try viewContext.save()
+            showingShareSheet = true
+        } catch {
+            alertMessage = "Failed to prepare routine for sharing: \(error.localizedDescription)"
+            showingAlert = true
+        }
+    }
+    
+    private func stopSharing() {
+        Task {
+            do {
+                try await cloudKitManager.stopSharing(routine: routine)
+                
+                await MainActor.run {
+                    do {
+                        try viewContext.save()
+                        alertMessage = "Stopped sharing this routine."
+                        showingAlert = true
+                    } catch {
+                        alertMessage = "Failed to stop sharing: \(error.localizedDescription)"
+                        showingAlert = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    alertMessage = "Failed to stop sharing: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+            }
+        }
+    }
+    
+    private func leaveSharedRoutine() {
+        Task {
+            do {
+                try await cloudKitManager.leaveSharedRoutine(routine)
+                
+                await MainActor.run {
+                    // Remove from local storage
+                    viewContext.delete(routine)
+                    
+                    do {
+                        try viewContext.save()
+                    } catch {
+                        alertMessage = "Failed to leave shared routine: \(error.localizedDescription)"
+                        showingAlert = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    alertMessage = "Failed to leave shared routine: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Share Sheet
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let routine: Routine
+    @Environment(\.dismiss) private var dismiss
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        // TODO: Replace with actual CloudKit share when available
+        let items: [Any] = [
+            "Join my routine: \(routine.name)",
+            URL(string: "https://routinier.app/share/\(routine.id.uuidString)")!
+        ]
+        
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        controller.completionWithItemsHandler = { _, _, _, _ in
+            dismiss()
+        }
+        
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
+        // No updates needed
     }
 }
