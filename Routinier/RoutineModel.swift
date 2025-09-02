@@ -64,5 +64,73 @@ extension Routine {
     }
 }
 
+// MARK: - Sharing Extensions
+
+extension Routine {
+    /// Whether this routine can be shared
+    var canBeShared: Bool {
+        return !isShared && CloudKitManager.shared.canShare(routine: self)
+    }
+    
+    /// Whether this routine is currently shared with others
+    var isCurrentlyShared: Bool {
+        return isShared && cloudKitShareData != nil
+    }
+    
+    /// Number of participants in this shared routine (stub)
+    var participantCount: Int {
+        // TODO: Extract from cloudKitShareData when available
+        return isShared ? 2 : 1 // Placeholder: owner + 1 participant
+    }
+    
+    /// URL for sharing this routine (if shared)
+    var shareURL: URL? {
+        guard isShared else { return nil }
+        return CloudKitManager.shared.getSharingURL(for: self)
+    }
+    
+    /// Display text for sharing status
+    var sharingStatusText: String {
+        if isShared {
+            let count = participantCount
+            return count > 1 ? "Shared with \(count - 1) people" : "Shared"
+        } else {
+            return "Private"
+        }
+    }
+    
+    /// Icon name for sharing status
+    var sharingStatusIcon: String {
+        return isShared ? "person.2.fill" : "person.fill"
+    }
+    
+    /// Color for sharing status
+    var sharingStatusColor: String {
+        return isShared ? "blue" : "gray"
+    }
+    
+    /// Whether the current user owns this routine
+    var isOwnedByCurrentUser: Bool {
+        let currentOwnerID = CloudKitManager.shared.getCurrentOwnerID()
+        return ownerId == nil || ownerId == currentOwnerID
+    }
+    
+    /// Prepares routine for sharing by setting initial share properties
+    func prepareForSharing() {
+        guard !isShared else { return }
+        
+        isShared = true
+        ownerId = CloudKitManager.shared.getCurrentOwnerID()
+        lastModified = Date()
+    }
+    
+    /// Marks routine as no longer shared
+    func stopSharing() {
+        isShared = false
+        cloudKitShareData = nil
+        lastModified = Date()
+    }
+}
+
 extension Routine: Identifiable {}
 extension Completion: Identifiable {}
