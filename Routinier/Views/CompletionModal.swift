@@ -27,7 +27,7 @@ struct CompletionModal: View {
                     }
                 }
             }
-            .navigationTitle("Routine Done")
+            .navigationTitle("Mark as completed")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
