@@ -14,18 +14,34 @@ final class PersistenceController {
 
     init(inMemory: Bool = false) {
         // Use CloudKit-enabled container for production, regular container for in-memory/preview
-        let localContainer: NSPersistentContainer
-        
         if inMemory {
-            localContainer = NSPersistentContainer(name: "Routinier")
-            localContainer.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+            container = NSPersistentContainer(name: "Routinier")
+            container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         } else {
             // Use CloudKit container for production
-            localContainer = NSPersistentCloudKitContainer(name: "Routinier")
-            configureCloudKitStore(for: localContainer)
+            container = NSPersistentCloudKitContainer(name: "Routinier")
+            
+            // Configure CloudKit store
+            guard let storeDescription = container.persistentStoreDescriptions.first else {
+                fatalError("No store description found")
+            }
+            
+            // Enable persistent history tracking (required for CloudKit)
+            storeDescription.setOption(true as NSNumber, 
+                                     forKey: NSPersistentHistoryTrackingKey)
+            storeDescription.setOption(true as NSNumber, 
+                                     forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            
+            // Configure CloudKit container options
+            let containerOptions = NSPersistentCloudKitContainerOptions(
+                containerIdentifier: "iCloud.com.aralph.Routinier"
+            )
+            storeDescription.cloudKitContainerOptions = containerOptions
+            
+            print("CloudKit store configured with container: iCloud.com.aralph.Routinier")
         }
         
-        localContainer.loadPersistentStores { description, error in
+        container.loadPersistentStores { description, error in
             if let error = error as NSError? {
                 // Replace this implementation with code to handle the error appropriately.
                 // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
@@ -41,32 +57,10 @@ final class PersistenceController {
                 print("Core Data load error: \(error), \(error.userInfo)")
             } else {
                 print("Store loaded: \(description)")
-                print("Entities: \(localContainer.managedObjectModel.entitiesByName.keys)")
+                print("Entities: \(container.managedObjectModel.entitiesByName.keys)")
             }
         }
-        localContainer.viewContext.automaticallyMergesChangesFromParent = true
-        self.container = localContainer
-    }
-    
-    // MARK: - CloudKit Configuration
-    
-    /// Configures CloudKit store for sync
-    private func configureCloudKitStore(for container: NSPersistentContainer) {
-        guard let storeDescription = container.persistentStoreDescriptions.first else { return }
-        
-        // Enable persistent history tracking (required for CloudKit)
-        storeDescription.setOption(true as NSNumber, 
-                                 forKey: NSPersistentHistoryTrackingKey)
-        storeDescription.setOption(true as NSNumber, 
-                                 forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-        
-        // Configure CloudKit container options
-        let containerOptions = NSPersistentCloudKitContainerOptions(
-            containerIdentifier: "iCloud.com.aralph.Routinier"
-        )
-        storeDescription.cloudKitContainerOptions = containerOptions
-        
-        print("CloudKit store configured with container: iCloud.com.aralph.Routinier")
+        container.viewContext.automaticallyMergesChangesFromParent = true
     }
     
     // MARK: - Sync Operations
