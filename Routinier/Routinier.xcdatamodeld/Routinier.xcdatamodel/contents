@@ -7,7 +7,7 @@
     </entity>
     <entity name="Routine" representedClassName=".Routine" syncable="YES">
         <attribute name="category" optional="YES" attributeType="String"/>
-        <attribute name="cloudKitShareData" optional="YES" attributeType="Binary Data"/>
+        <attribute name="cloudKitShareData" optional="YES" attributeType="Binary Data" usesScalarValueType="NO"/>
         <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="descriptionText" optional="YES" attributeType="String"/>
         <attribute name="firstDueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
