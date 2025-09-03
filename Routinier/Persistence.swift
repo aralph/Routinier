@@ -57,7 +57,7 @@ final class PersistenceController {
                 print("Core Data load error: \(error), \(error.userInfo)")
             } else {
                 print("Store loaded: \(description)")
-                print("Entities: \(container.managedObjectModel.entitiesByName.keys)")
+                print("Entities: \(self.container.managedObjectModel.entitiesByName.keys)")
             }
         }
         container.viewContext.automaticallyMergesChangesFromParent = true

@@ -7,6 +7,7 @@
 import Foundation
 import CloudKit
 import CoreData
+import UIKit
 
 class CloudKitManager: ObservableObject {
     static let shared = CloudKitManager()
