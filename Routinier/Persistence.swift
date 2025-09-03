@@ -13,15 +13,16 @@ final class PersistenceController {
     private let cloudKitManager = CloudKitManager.shared
 
     init(inMemory: Bool = false) {
-        let localContainer = NSPersistentContainer(name: "Routinier")
+        // Use CloudKit-enabled container for production, regular container for in-memory/preview
+        let localContainer: NSPersistentContainer
         
-        // Configure CloudKit integration when credentials are available
-        if !inMemory && cloudKitManager.isCloudKitEnabled {
-            configureCloudKitStore(for: localContainer)
-        }
-
         if inMemory {
+            localContainer = NSPersistentContainer(name: "Routinier")
             localContainer.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+        } else {
+            // Use CloudKit container for production
+            localContainer = NSPersistentCloudKitContainer(name: "Routinier")
+            configureCloudKitStore(for: localContainer)
         }
         
         localContainer.loadPersistentStores { description, error in
@@ -49,15 +50,11 @@ final class PersistenceController {
     
     // MARK: - CloudKit Configuration
     
-    /// Configures CloudKit store (stub implementation)
+    /// Configures CloudKit store for sync
     private func configureCloudKitStore(for container: NSPersistentContainer) {
-        // TODO: Enable when CloudKit credentials are available
-        // This would configure NSPersistentCloudKitContainer instead of NSPersistentContainer
-        print("CloudKit store configuration ready (awaiting credentials)")
-        
-        /* Future implementation:
         guard let storeDescription = container.persistentStoreDescriptions.first else { return }
         
+        // Enable persistent history tracking (required for CloudKit)
         storeDescription.setOption(true as NSNumber, 
                                  forKey: NSPersistentHistoryTrackingKey)
         storeDescription.setOption(true as NSNumber, 
@@ -65,10 +62,11 @@ final class PersistenceController {
         
         // Configure CloudKit container options
         let containerOptions = NSPersistentCloudKitContainerOptions(
-            containerIdentifier: "iCloud.com.yourname.Routinier"
+            containerIdentifier: "iCloud.com.aralph.Routinier"
         )
         storeDescription.cloudKitContainerOptions = containerOptions
-        */
+        
+        print("CloudKit store configured with container: iCloud.com.aralph.Routinier")
     }
     
     // MARK: - Sync Operations

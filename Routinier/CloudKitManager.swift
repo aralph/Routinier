@@ -47,8 +47,8 @@ class CloudKitManager: ObservableObject {
     }
     
     private init() {
-        // TODO: Replace with actual container identifier once CloudKit is enabled
-        self.container = CKContainer.default()
+        // Use your CloudKit container
+        self.container = CKContainer(identifier: "iCloud.com.aralph.Routinier")
         self.privateDatabase = container.privateCloudDatabase
         self.sharedDatabase = container.sharedCloudDatabase
         
