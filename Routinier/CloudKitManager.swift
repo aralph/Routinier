@@ -60,7 +60,7 @@ class CloudKitManager: ObservableObject {
     
     private func checkCloudKitAvailability() {
         container.accountStatus { [weak self] status, error in
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 switch status {
                 case .available:
                     self?.isCloudKitEnabled = true
@@ -86,47 +86,56 @@ class CloudKitManager: ObservableObject {
     
     // MARK: - Sharing Operations (Stubs)
     
-    /// Creates a CloudKit share for a routine  
+    /// Creates a CloudKit share for a routine
     func createShare(for routine: Routine) async throws -> CKShare {
         guard isCloudKitEnabled else {
             throw CloudKitError.credentialsNotAvailable
         }
         
-        guard let context = routine.managedObjectContext else {
+        guard let context = routine.managedObjectContext,
+              let persistentStore = context.persistentStoreCoordinator?.persistentStores.first else {
             throw CloudKitError.recordNotFound
         }
         
-        // Use NSPersistentCloudKitContainer.share() method
+        // Get the NSPersistentCloudKitContainer from the PersistenceController
+        let persistentContainer = PersistenceController.shared.container as? NSPersistentCloudKitContainer
+        guard let container = persistentContainer else {
+            throw CloudKitError.recordNotFound
+        }
+        
         return try await withCheckedThrowingContinuation { continuation in
-            context.perform {
-                do {
-                    guard let persistentStore = context.persistentStoreCoordinator?.persistentStores.first else {
-                        continuation.resume(throwing: CloudKitError.recordNotFound)
-                        return
-                    }
-                    
-                    // Use the Core Data sharing API
-                    let shareResult = try context.persistentStoreCoordinator?.share([routine], to: persistentStore)
-                    
-                    guard let (_, share, _) = shareResult else {
-                        continuation.resume(throwing: CloudKitError.sharingNotSupported)
+            // Use NSPersistentCloudKitContainer.share() method
+            container.share([routine], to: nil) { (objectIDs, share, containerResult, error) in
+                guard let share = share, error == nil else {
+                    print("Failed to create share: \(error?.localizedDescription ?? "Unknown error")")
+                    continuation.resume(throwing: error ?? CloudKitError.sharingNotSupported)
+                    return
+                }
+                
+                // Configure the share
+                share[CKShare.SystemFieldKey.title] = "Shared routine: \(routine.displayName)" as CKRecordValue
+                share.publicPermission = CKShare.ParticipantPermission.none // Private share
+                
+                // Persist the share update
+                container.persistUpdatedShare(share, in: persistentStore) { (updatedShare, persistError) in
+                    if let persistError = persistError {
+                        print("Failed to persist updated share: \(persistError)")
+                        continuation.resume(throwing: persistError)
                         return
                     }
                     
                     // Store share data in routine
-                    if let shareData = try? NSKeyedArchiver.archivedData(withRootObject: share, requiringSecureCoding: true) {
-                        routine.cloudKitShareData = shareData
-                        routine.isShared = true  
-                        routine.lastModified = Date()
-                        try? context.save()
+                    context.perform {
+                        if let shareData = try? NSKeyedArchiver.archivedData(withRootObject: share, requiringSecureCoding: true) {
+                            routine.cloudKitShareData = shareData
+                            routine.isShared = true
+                            routine.lastModified = Date()
+                            try? context.save()
+                        }
+                        
+                        print("Successfully created share for routine: \(routine.displayName)")
+                        continuation.resume(returning: share)
                     }
-                    
-                    print("Successfully created share for routine: \(routine.displayName)")
-                    continuation.resume(returning: share)
-                    
-                } catch {
-                    print("Failed to create share: \(error)")
-                    continuation.resume(throwing: error)
                 }
             }
         }
@@ -195,8 +204,8 @@ class CloudKitManager: ObservableObject {
             throw CloudKitError.credentialsNotAvailable
         }
         
-        DispatchQueue.main.async { [weak self] in
-            self?.syncStatus = .syncing
+        await MainActor.run {
+            syncStatus = .syncing
         }
         
         // TODO: Implement actual sync
@@ -205,8 +214,8 @@ class CloudKitManager: ObservableObject {
         // Simulate sync delay
         try await Task.sleep(nanoseconds: 1_000_000_000)
         
-        DispatchQueue.main.async { [weak self] in
-            self?.syncStatus = .available
+        await MainActor.run {
+            syncStatus = .available
         }
     }
     
