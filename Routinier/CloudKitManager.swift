@@ -86,44 +86,49 @@ class CloudKitManager: ObservableObject {
     
     // MARK: - Sharing Operations (Stubs)
     
-    /// Creates a CloudKit share for a routine
+    /// Creates a CloudKit share for a routine  
     func createShare(for routine: Routine) async throws -> CKShare {
         guard isCloudKitEnabled else {
             throw CloudKitError.credentialsNotAvailable
         }
         
-        guard let context = routine.managedObjectContext,
-              let persistentStore = context.persistentStoreCoordinator?.persistentStores.first else {
+        guard let context = routine.managedObjectContext else {
             throw CloudKitError.recordNotFound
         }
         
-        // Use Core Data + CloudKit integration to create share
-        do {
-            let (_, share, _) = try await context.perform {
-                guard let cloudKitContainer = context.persistentStoreCoordinator?.persistentStores.first else {
-                    throw CloudKitError.recordNotFound
+        // Use NSPersistentCloudKitContainer.share() method
+        return try await withCheckedThrowingContinuation { continuation in
+            context.perform {
+                do {
+                    guard let persistentStore = context.persistentStoreCoordinator?.persistentStores.first else {
+                        continuation.resume(throwing: CloudKitError.recordNotFound)
+                        return
+                    }
+                    
+                    // Use the Core Data sharing API
+                    let shareResult = try context.persistentStoreCoordinator?.share([routine], to: persistentStore)
+                    
+                    guard let (_, share, _) = shareResult else {
+                        continuation.resume(throwing: CloudKitError.sharingNotSupported)
+                        return
+                    }
+                    
+                    // Store share data in routine
+                    if let shareData = try? NSKeyedArchiver.archivedData(withRootObject: share, requiringSecureCoding: true) {
+                        routine.cloudKitShareData = shareData
+                        routine.isShared = true  
+                        routine.lastModified = Date()
+                        try? context.save()
+                    }
+                    
+                    print("Successfully created share for routine: \(routine.displayName)")
+                    continuation.resume(returning: share)
+                    
+                } catch {
+                    print("Failed to create share: \(error)")
+                    continuation.resume(throwing: error)
                 }
-                
-                // Create the share using NSPersistentCloudKitContainer
-                return try context.persistentStoreCoordinator!.share([routine], to: persistentStore)
             }
-            
-            // Store the share data in the routine
-            if let shareData = try? NSKeyedArchiver.archivedData(withRootObject: share, requiringSecureCoding: true) {
-                await context.perform {
-                    routine.cloudKitShareData = shareData
-                    routine.isShared = true
-                    routine.lastModified = Date()
-                    try? context.save()
-                }
-            }
-            
-            print("Successfully created share for routine: \(routine.displayName)")
-            return share
-            
-        } catch {
-            print("Failed to create share: \(error)")
-            throw error
         }
     }
     
