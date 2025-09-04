@@ -68,6 +68,9 @@ class CloudKitManager: ObservableObject {
                 case .noAccount, .restricted, .couldNotDetermine:
                     self?.isCloudKitEnabled = false
                     self?.syncStatus = .unavailable
+                case .temporarilyUnavailable:
+                    self?.isCloudKitEnabled = false
+                    self?.syncStatus = .unavailable
                 @unknown default:
                     self?.isCloudKitEnabled = false
                     self?.syncStatus = .unavailable
