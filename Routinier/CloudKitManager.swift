@@ -157,8 +157,8 @@ class CloudKitManager: ObservableObject {
         }
         
         do {
-            // Delete the share from CloudKit
-            try await privateDatabase.delete(withRecordID: share.recordID)
+            // Delete the share from CloudKit  
+            _ = try await privateDatabase.deleteRecord(withID: share.recordID)
             
             // Update local properties
             await context.perform {
@@ -183,7 +183,7 @@ class CloudKitManager: ObservableObject {
         }
         
         // TODO: Implement leaving shared routine
-        print("Leaving shared routine: \(routine.name)")
+        print("Leaving shared routine: \(routine.displayName)")
         throw CloudKitError.sharingNotSupported
     }
     
