@@ -3,7 +3,7 @@
     <entity name="Completion" representedClassName=".Completion" syncable="YES">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="routine" maxCount="1" deletionRule="Nullify" destinationEntity="Routine" inverseName="completions" inverseEntity="Routine"/>
+        <relationship name="routine" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Routine" inverseName="completions" inverseEntity="Routine"/>
     </entity>
     <entity name="Routine" representedClassName=".Routine" syncable="YES">
         <attribute name="category" optional="YES" attributeType="String"/>

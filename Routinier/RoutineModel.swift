@@ -32,14 +32,19 @@ public class Routine: NSManagedObject {
 public class Completion: NSManagedObject {
     @NSManaged public var id: UUID?
     @NSManaged public var timestamp: Date?
-    @NSManaged public var routine: Routine
+    @NSManaged public var routine: Routine?
 }
 
 // MARK: - Convenience Methods
 
 extension Routine {
     public func markCompleted(at date: Date = Date()) {
-        let completion = Completion(context: self.managedObjectContext!)
+        guard let context = self.managedObjectContext else {
+            print("ERROR: Cannot mark completion - no managed object context")
+            return
+        }
+        
+        let completion = Completion(context: context)
         completion.id = UUID()
         completion.timestamp = date
         completion.routine = self
