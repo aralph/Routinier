@@ -118,7 +118,9 @@ struct RoutineListView: View {
                     EditRoutineView(routine: routine)
                         .environment(\.managedObjectContext, viewContext)
                 case .detail(let routine):
-                    RoutineDetailView(routine: routine)
+                    NavigationView {
+                        RoutineDetailView(routine: routine)
+                    }
                 }
             }
             .onChange(of: notificationRouter.selectedRoutineID) { newID in
