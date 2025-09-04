@@ -19,6 +19,13 @@ struct RoutineDetailView: View {
             Text(routine.displayName)
                 .font(.largeTitle)
             
+            if let description = routine.descriptionText, !description.isEmpty {
+                Text(description)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            
             if let nextDueDate = routine.nextDueDate {
                 Text("Due: \(nextDueDate, formatter: dateFormatter)")
                     .font(.title2)

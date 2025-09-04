@@ -67,6 +67,9 @@ struct RoutineListView: View {
                                 }
                             }
                         }
+                        .onTapGesture {
+                            activeSheet = .detail(routine)
+                        }
                         Spacer()
                         Button(action: {
                             activeSheet = .complete(routine)
