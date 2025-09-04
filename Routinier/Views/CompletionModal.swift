@@ -22,7 +22,7 @@ struct CompletionModal: View {
                     Text("Completed at: \(Date(), formatter: dateFormatter)")
                 }
                 Section(header: Text("Adjust Recurrence")) {
-                    Stepper(value: $recurrenceValue, in: 1...60) {
+                    Stepper(value: $recurrenceValue, in: 1...31) {
                         Text("Every \(recurrenceValue) days")
                     }
                 }
