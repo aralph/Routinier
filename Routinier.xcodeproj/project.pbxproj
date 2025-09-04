@@ -34,6 +34,7 @@
 		C600C8222E0DE8DA001247CB /* Exceptions for "Routinier" folder in "Routinier" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Info.plist,
 				PreviewData.swift,
 			);
 			target = C673FD0F2E0B5AD300499953 /* Routinier */;
@@ -434,6 +435,7 @@
 				DEVELOPMENT_TEAM = S78RJ4S8P6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Routinier/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -463,6 +465,7 @@
 				DEVELOPMENT_TEAM = S78RJ4S8P6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Routinier/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
