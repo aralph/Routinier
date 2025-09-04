@@ -8,30 +8,30 @@ import CoreData
 
 @objc(Routine)
 public class Routine: NSManagedObject {
-    @NSManaged public var id: UUID
-    @NSManaged public var name: String
+    @NSManaged public var id: UUID?
+    @NSManaged public var name: String?
     @NSManaged public var descriptionText: String?
     @NSManaged public var category: String?
-    @NSManaged public var recurrenceType: String  // "interval", "yearly", "monthly", "weekly"
+    @NSManaged public var recurrenceType: String?  // "interval", "yearly", "monthly", "weekly"
     @NSManaged public var recurrenceValue: Int32  // number of days or day of month
     @NSManaged public var hour: Int16
     @NSManaged public var minute: Int16
     @NSManaged public var firstDueDate: Date?
-    @NSManaged public var nextDueDate: Date
-    @NSManaged public var createdAt: Date
+    @NSManaged public var nextDueDate: Date?
+    @NSManaged public var createdAt: Date?
     @NSManaged public var completions: Set<Completion>
     
     // Sharing properties
     @NSManaged public var isShared: Bool
-    @NSManaged public var lastModified: Date
+    @NSManaged public var lastModified: Date?
     @NSManaged public var ownerId: String?
     @NSManaged public var cloudKitShareData: Data?
 }
 
 @objc(Completion)
 public class Completion: NSManagedObject {
-    @NSManaged public var id: UUID
-    @NSManaged public var timestamp: Date
+    @NSManaged public var id: UUID?
+    @NSManaged public var timestamp: Date?
     @NSManaged public var routine: Routine
 }
 
@@ -47,7 +47,12 @@ extension Routine {
         self.completions.insert(completion)
 
         // Calculate next due date
-        switch self.recurrenceType {
+        guard let recurrenceType = self.recurrenceType else {
+            print("Warning: Routine has no recurrence type, skipping next due date calculation")
+            return
+        }
+        
+        switch recurrenceType {
         case "interval":
             self.nextDueDate = Calendar.current.date(byAdding: .day, value: Int(self.recurrenceValue), to: date) ?? date
         case "monthly":
@@ -56,7 +61,8 @@ extension Routine {
             let comps = Calendar.current.dateComponents([.year, .month], from: next)
             self.nextDueDate = Calendar.current.date(from: DateComponents(year: comps.year, month: comps.month, day: Int(self.recurrenceValue))) ?? next
         default:
-            self.nextDueDate = date
+            print("Warning: Unknown recurrence type '\(recurrenceType)', skipping next due date calculation")
+            return
         }
         
         // Update last modified for CloudKit sync
@@ -97,6 +103,11 @@ extension Routine {
         } else {
             return "Private"
         }
+    }
+    
+    /// Safe access to routine name
+    var displayName: String {
+        return name ?? "Unnamed Routine"
     }
     
     /// Icon name for sharing status

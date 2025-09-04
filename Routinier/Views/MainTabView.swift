@@ -47,7 +47,7 @@ struct StatsView: View {
                     .padding(.horizontal)
 
                 let routineData: [(name: String, rate: Double)] = routines.map { routine in
-                    (routine.name, routine.fulfillmentRate * 100)
+                    (routine.displayName, routine.fulfillmentRate * 100)
                 }
 
                 Chart {

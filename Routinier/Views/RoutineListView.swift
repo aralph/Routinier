@@ -37,7 +37,7 @@ struct RoutineListView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             HStack {
-                                Text(routine.name)
+                                Text(routine.displayName)
                                     .font(.headline)
                                 
                                 // Sharing indicator
@@ -49,9 +49,15 @@ struct RoutineListView: View {
                             }
                             
                             HStack {
-                                Text("Due: \(routine.nextDueDate, formatter: dateFormatter)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                if let nextDueDate = routine.nextDueDate {
+                                    Text("Due: \(nextDueDate, formatter: dateFormatter)")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                } else {
+                                    Text("Due date not set")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
                                 
                                 // Sharing status text for shared routines
                                 if routine.isShared {

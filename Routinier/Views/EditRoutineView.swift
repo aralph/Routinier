@@ -72,9 +72,15 @@ struct EditRoutineView: View {
                 }
             }
             .onAppear {
-                name = routine.name
+                guard routine.name != nil, routine.recurrenceType != nil else {
+                    print("ERROR: EditRoutineView opened with incomplete routine data - name: \(routine.name ?? "nil"), recurrenceType: \(routine.recurrenceType ?? "nil")")
+                    dismiss()
+                    return
+                }
+                
+                name = routine.name!
                 descriptionText = routine.descriptionText ?? ""
-                recurrenceType = routine.recurrenceType
+                recurrenceType = routine.recurrenceType!
                 recurrenceValue = Int(routine.recurrenceValue)
                 firstDueDate = routine.firstDueDate ?? Date()
 

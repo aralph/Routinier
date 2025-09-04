@@ -17,7 +17,7 @@ struct CompletionModal: View {
         NavigationView {
             Form {
                 Section(header: Text("Completed Routine")) {
-                    Text(routine.name)
+                    Text(routine.displayName)
                         .font(.headline)
                     Text("Completed at: \(Date(), formatter: dateFormatter)")
                 }

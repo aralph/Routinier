@@ -16,11 +16,17 @@ struct RoutineDetailView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Text(routine.name)
+            Text(routine.displayName)
                 .font(.largeTitle)
             
-            Text("Due: \(routine.nextDueDate, formatter: dateFormatter)")
-                .font(.title2)
+            if let nextDueDate = routine.nextDueDate {
+                Text("Due: \(nextDueDate, formatter: dateFormatter)")
+                    .font(.title2)
+            } else {
+                Text("Due date not set")
+                    .font(.title2)
+                    .foregroundColor(.secondary)
+            }
             
             // Sharing status section
             VStack(spacing: 10) {
@@ -150,8 +156,8 @@ struct ShareSheet: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIActivityViewController {
         // TODO: Replace with actual CloudKit share when available
         let items: [Any] = [
-            "Join my routine: \(routine.name)",
-            URL(string: "https://routinier.app/share/\(routine.id.uuidString)")!
+            "Join my routine: \(routine.displayName)",
+            URL(string: "https://routinier.app/share/\(routine.id?.uuidString ?? "unknown")")!
         ]
         
         let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)

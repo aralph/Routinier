@@ -41,7 +41,10 @@ extension Routine {
         var matched = 0
 
         for dueDate in expectedDates {
-            if completions.contains(where: { abs($0.timestamp.timeIntervalSince(dueDate)) <= margin }) {
+            if completions.contains(where: { 
+                guard let timestamp = $0.timestamp else { return false }
+                return abs(timestamp.timeIntervalSince(dueDate)) <= margin 
+            }) {
                 matched += 1
             }
         }

@@ -20,14 +20,18 @@ class NotificationService {
     }
 
     func scheduleNotification(for routine: Routine) {
-        let id = routine.id.uuidString
+        guard let id = routine.id?.uuidString,
+              let nextDueDate = routine.nextDueDate else {
+            print("Cannot schedule notification: routine missing id or nextDueDate")
+            return
+        }
 
         let content = UNMutableNotificationContent()
         content.title = "Routine Reminder"
-        content.body = "It's time for: \(routine.name)"
+        content.body = "It's time for: \(routine.displayName)"
         content.sound = .default
 
-        var dateComponents = Calendar.current.dateComponents([.year, .month, .day], from: routine.nextDueDate)
+        var dateComponents = Calendar.current.dateComponents([.year, .month, .day], from: nextDueDate)
         dateComponents.hour = Int(routine.hour)
         dateComponents.minute = Int(routine.minute)
 
@@ -42,7 +46,10 @@ class NotificationService {
     }
 
     func cancelNotification(for routine: Routine) {
-        let id = routine.id.uuidString
+        guard let id = routine.id?.uuidString else {
+            print("Cannot cancel notification: routine missing id")
+            return
+        }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
     }
 }
