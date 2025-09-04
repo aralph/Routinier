@@ -89,12 +89,39 @@ class CloudKitManager: ObservableObject {
             throw CloudKitError.credentialsNotAvailable
         }
         
-        // TODO: Implement actual CloudKit share creation
-        // This is a stub implementation
-        print("Creating share for routine: \(routine.name)")
+        guard let context = routine.managedObjectContext,
+              let persistentStore = context.persistentStoreCoordinator?.persistentStores.first else {
+            throw CloudKitError.recordNotFound
+        }
         
-        // Placeholder - will be replaced with actual CKShare creation
-        throw CloudKitError.sharingNotSupported
+        // Use Core Data + CloudKit integration to create share
+        do {
+            let (_, share, _) = try await context.perform {
+                guard let cloudKitContainer = context.persistentStoreCoordinator?.persistentStores.first else {
+                    throw CloudKitError.recordNotFound
+                }
+                
+                // Create the share using NSPersistentCloudKitContainer
+                return try context.persistentStoreCoordinator!.share([routine], to: persistentStore)
+            }
+            
+            // Store the share data in the routine
+            if let shareData = try? NSKeyedArchiver.archivedData(withRootObject: share, requiringSecureCoding: true) {
+                await context.perform {
+                    routine.cloudKitShareData = shareData
+                    routine.isShared = true
+                    routine.lastModified = Date()
+                    try? context.save()
+                }
+            }
+            
+            print("Successfully created share for routine: \(routine.displayName)")
+            return share
+            
+        } catch {
+            print("Failed to create share: \(error)")
+            throw error
+        }
     }
     
     /// Accepts a shared routine invitation
@@ -114,14 +141,30 @@ class CloudKitManager: ObservableObject {
             throw CloudKitError.credentialsNotAvailable
         }
         
-        // TODO: Implement share removal
-        print("Stopping sharing for routine: \(routine.name)")
+        guard let context = routine.managedObjectContext,
+              let shareData = routine.cloudKitShareData,
+              let share = try? NSKeyedUnarchiver.unarchivedObject(ofClass: CKShare.self, from: shareData) else {
+            print("No share found to stop")
+            return
+        }
         
-        // For now, just update local properties
-        await MainActor.run {
-            routine.isShared = false
-            routine.cloudKitShareData = nil
-            routine.lastModified = Date()
+        do {
+            // Delete the share from CloudKit
+            try await privateDatabase.delete(withRecordID: share.recordID)
+            
+            // Update local properties
+            await context.perform {
+                routine.isShared = false
+                routine.cloudKitShareData = nil
+                routine.lastModified = Date()
+                try? context.save()
+            }
+            
+            print("Successfully stopped sharing for routine: \(routine.displayName)")
+            
+        } catch {
+            print("Failed to stop sharing: \(error)")
+            throw error
         }
     }
     
@@ -185,8 +228,12 @@ class CloudKitManager: ObservableObject {
     
     /// Gets sharing URL for a routine (if shared)
     func getSharingURL(for routine: Routine) -> URL? {
-        // TODO: Extract URL from cloudKitShareData
-        return nil
+        guard let shareData = routine.cloudKitShareData,
+              let share = try? NSKeyedUnarchiver.unarchivedObject(ofClass: CKShare.self, from: shareData) else {
+            return nil
+        }
+        
+        return share.url
     }
 }
 

@@ -86,14 +86,39 @@ struct RoutineDetailView: View {
             return
         }
         
-        routine.prepareForSharing()
+        // If already shared, check if we have a valid share URL
+        if routine.isShared {
+            if routine.shareURL != nil {
+                showingShareSheet = true
+            } else {
+                alertMessage = "Share not ready yet, please try again in a moment."
+                showingAlert = true
+            }
+            return
+        }
         
-        do {
-            try viewContext.save()
-            showingShareSheet = true
-        } catch {
-            alertMessage = "Failed to prepare routine for sharing: \(error.localizedDescription)"
-            showingAlert = true
+        // Create new share
+        Task {
+            do {
+                routine.prepareForSharing()
+                try viewContext.save()
+                
+                let _ = try await cloudKitManager.createShare(for: routine)
+                
+                await MainActor.run {
+                    if routine.shareURL != nil {
+                        showingShareSheet = true
+                    } else {
+                        alertMessage = "Failed to create share URL. Please try again."
+                        showingAlert = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    alertMessage = "Failed to create share: \(error.localizedDescription)"
+                    showingAlert = true
+                }
+            }
         }
     }
     
@@ -154,10 +179,9 @@ struct ShareSheet: UIViewControllerRepresentable {
     @Environment(\.dismiss) private var dismiss
     
     func makeUIViewController(context: Context) -> UIActivityViewController {
-        // TODO: Replace with actual CloudKit share when available
         let items: [Any] = [
             "Join my routine: \(routine.displayName)",
-            URL(string: "https://routinier.app/share/\(routine.id?.uuidString ?? "unknown")")!
+            routine.shareURL! // Safe to force unwrap - we checked this before showing the sheet
         ]
         
         let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
