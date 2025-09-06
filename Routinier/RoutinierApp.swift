@@ -8,7 +8,7 @@ import SwiftUI
 @main
 struct RoutinierApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    let persistenceController = PersistenceController()  // make sure this uses the right model
+    let persistenceController = PersistenceController.shared
 
     @StateObject private var notificationRouter = NotificationRouter()
 

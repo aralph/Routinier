@@ -107,8 +107,12 @@ struct RoutineDetailView: View {
         // Create new share
         Task {
             do {
+                // First ensure the routine is saved and synced to CloudKit
                 routine.prepareForSharing()
                 try viewContext.save()
+                
+                // Wait a moment for Core Data to sync to CloudKit
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
                 
                 let _ = try await cloudKitManager.createShare(for: routine)
                 
@@ -120,9 +124,20 @@ struct RoutineDetailView: View {
                         showingAlert = true
                     }
                 }
-            } catch {
+            } catch let error as NSError {
                 await MainActor.run {
-                    alertMessage = "Failed to create share: \(error.localizedDescription)"
+                    let errorCode = error.code
+                    let errorDomain = error.domain
+                    
+                    var userFriendlyMessage = "Failed to create share"
+                    
+                    if errorDomain == "NSCocoaErrorDomain" && errorCode == 134422 {
+                        userFriendlyMessage = "The routine needs to sync to iCloud first. Please try again in a moment."
+                    } else {
+                        userFriendlyMessage = "Failed to create share: \(error.localizedDescription)"
+                    }
+                    
+                    alertMessage = userFriendlyMessage
                     showingAlert = true
                 }
             }

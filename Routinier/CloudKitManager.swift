@@ -12,10 +12,6 @@ import UIKit
 class CloudKitManager: ObservableObject {
     static let shared = CloudKitManager()
     
-    private let container: CKContainer
-    private let privateDatabase: CKDatabase
-    private let sharedDatabase: CKDatabase
-    
     @Published var isCloudKitEnabled = false
     @Published var syncStatus: SyncStatus = .unknown
     
@@ -48,17 +44,15 @@ class CloudKitManager: ObservableObject {
     }
     
     private init() {
-        // Use your CloudKit container
-        self.container = CKContainer(identifier: "iCloud.com.aralph.Routinier")
-        self.privateDatabase = container.privateCloudDatabase
-        self.sharedDatabase = container.sharedCloudDatabase
-        
         checkCloudKitAvailability()
     }
     
     // MARK: - CloudKit Availability
     
     private func checkCloudKitAvailability() {
+        // Use the known container identifier directly to avoid circular dependency
+        let container = CKContainer(identifier: "iCloud.com.aralph.Routinier")
+        
         container.accountStatus { [weak self] status, error in
             Task { @MainActor in
                 switch status {
@@ -106,9 +100,16 @@ class CloudKitManager: ObservableObject {
         return try await withCheckedThrowingContinuation { continuation in
             // Use NSPersistentCloudKitContainer.share() method
             container.share([routine], to: nil) { (objectIDs, share, containerResult, error) in
-                guard let share = share, error == nil else {
-                    print("Failed to create share: \(error?.localizedDescription ?? "Unknown error")")
-                    continuation.resume(throwing: error ?? CloudKitError.sharingNotSupported)
+                if let error = error {
+                    print("Failed to create share: \(error.localizedDescription)")
+                    print("Error domain: \(error._domain), code: \(error._code)")
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let share = share else {
+                    print("No share returned from container.share()")
+                    continuation.resume(throwing: CloudKitError.sharingNotSupported)
                     return
                 }
                 
@@ -165,16 +166,30 @@ class CloudKitManager: ObservableObject {
             return
         }
         
+        // Get the persistent container for proper CloudKit deletion
+        guard let persistentContainer = PersistenceController.shared.container as? NSPersistentCloudKitContainer,
+              let persistentStore = context.persistentStoreCoordinator?.persistentStores.first else {
+            throw CloudKitError.recordNotFound
+        }
+        
         do {
-            // Delete the share from CloudKit  
-            _ = try await privateDatabase.deleteRecord(withID: share.recordID)
-            
-            // Update local properties
-            await context.perform {
-                routine.isShared = false
-                routine.cloudKitShareData = nil
-                routine.lastModified = Date()
-                try? context.save()
+            // Use NSPersistentCloudKitContainer to properly delete the share
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                persistentContainer.persistUpdatedShare(share, in: persistentStore) { (updatedShare, error) in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+                    
+                    // Update local properties
+                    context.perform {
+                        routine.isShared = false
+                        routine.cloudKitShareData = nil
+                        routine.lastModified = Date()
+                        try? context.save()
+                        continuation.resume(returning: ())
+                    }
+                }
             }
             
             print("Successfully stopped sharing for routine: \(routine.displayName)")
