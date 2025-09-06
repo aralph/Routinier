@@ -12,6 +12,8 @@ struct RoutinierApp: App {
     let persistenceController = PersistenceController.shared
 
     @StateObject private var notificationRouter = NotificationRouter()
+    @State private var showingSharingAlert = false
+    @State private var sharingAlertMessage = ""
 
     init() {
         AppDelegate.notificationRouter = notificationRouter
@@ -27,6 +29,11 @@ struct RoutinierApp: App {
                 }
                 .onOpenURL { url in
                     handleIncomingURL(url)
+                }
+                .alert("Sharing", isPresented: $showingSharingAlert) {
+                    Button("OK") { }
+                } message: {
+                    Text(sharingAlertMessage)
                 }
         }
     }
@@ -72,9 +79,12 @@ struct RoutinierApp: App {
                 do {
                     try await CloudKitManager.shared.acceptShare(with: metadata)
                     print("Successfully accepted share invitation")
-                    // TODO: Navigate to the shared routine or refresh the routine list
+                    sharingAlertMessage = "Successfully joined shared routine!"
+                    showingSharingAlert = true
                 } catch {
                     print("Failed to accept share: \(error)")
+                    sharingAlertMessage = "Failed to join shared routine: \(error.localizedDescription)"
+                    showingSharingAlert = true
                 }
             }
         }
