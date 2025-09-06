@@ -148,9 +148,30 @@ class CloudKitManager: ObservableObject {
             throw CloudKitError.credentialsNotAvailable
         }
         
-        // TODO: Implement share acceptance
-        print("Accepting share invitation")
-        throw CloudKitError.sharingNotSupported
+        // Get the NSPersistentCloudKitContainer from the PersistenceController
+        let persistentContainer = PersistenceController.shared.container as? NSPersistentCloudKitContainer
+        guard let container = persistentContainer else {
+            throw CloudKitError.recordNotFound
+        }
+        
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            // Use NSPersistentCloudKitContainer.acceptShareInvitations() method
+            container.acceptShareInvitations(from: [metadata], into: container.persistentStoreCoordinator.persistentStores.first!) { (acceptedMetadata: [CKShare.Metadata]?, error: Error?) in
+                if let error = error {
+                    print("Failed to accept share invitation: \(error.localizedDescription)")
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                if let acceptedMetadata = acceptedMetadata, !acceptedMetadata.isEmpty {
+                    print("Successfully accepted share invitation for: \(acceptedMetadata.first?.share[CKShare.SystemFieldKey.title] as? String ?? "Unknown routine")")
+                    continuation.resume(returning: ())
+                } else {
+                    print("No metadata returned from acceptShareInvitations")
+                    continuation.resume(throwing: CloudKitError.sharingNotSupported)
+                }
+            }
+        }
     }
     
     /// Removes sharing from a routine
@@ -206,9 +227,33 @@ class CloudKitManager: ObservableObject {
             throw CloudKitError.credentialsNotAvailable
         }
         
-        // TODO: Implement leaving shared routine
-        print("Leaving shared routine: \(routine.displayName)")
-        throw CloudKitError.sharingNotSupported
+        guard let context = routine.managedObjectContext,
+              let shareData = routine.cloudKitShareData,
+              let share = try? NSKeyedUnarchiver.unarchivedObject(ofClass: CKShare.self, from: shareData) else {
+            print("No share found to leave")
+            return
+        }
+        
+        // Get the persistent container for proper CloudKit operations
+        guard let persistentContainer = PersistenceController.shared.container as? NSPersistentCloudKitContainer,
+              let persistentStore = context.persistentStoreCoordinator?.persistentStores.first else {
+            throw CloudKitError.recordNotFound
+        }
+        
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            // For participants, we need to remove ourselves from the share
+            // This is done by purging the objects and records from our local store
+            persistentContainer.purgeObjectsAndRecordsInZone(with: share.recordID.zoneID, in: persistentStore) { (zoneID, error) in
+                if let error = error {
+                    print("Failed to leave shared routine: \(error.localizedDescription)")
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                print("Successfully left shared routine: \(routine.displayName)")
+                continuation.resume(returning: ())
+            }
+        }
     }
     
     // MARK: - Sync Operations (Stubs)
