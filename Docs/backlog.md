@@ -2,7 +2,9 @@
 
 This document tracks planned features for version 1 of the Routinier app.
 
-## ✅ Implemented
+## ✅ Implemented 
+
+### Core features
 - Create routines with flexible recurrence (interval, weekly, monthly, yearly)
 - Core Data persistence with preview/testing support
 - SwiftUI interface for listing, creating, and completing routines
@@ -11,20 +13,21 @@ This document tracks planned features for version 1 of the Routinier app.
 - Create completion modal
 - Edit and delete existing routines
 - Scheduled notifications on next due date
+- Basic fulfillment rate
 
-## 🔜 Planned
-
-### Fulfillment Stats
-- Track completion history
-- Calculate fulfillment rate and missed sessions
-- Visual feedback (e.g. progress bars, streaks)
-
-### Shared Routines (for v2+)
+## Shared Routines
 - Cloud sync support (FastAPI backend)
 - Multi-user sharing of routines
 - Authentication and account management
 
-## 🧪 Testing and Developer Tools
+## 🔜 Planned
+
+### 📈 Extended Fulfillment Stats
+- Track completion history
+- Track streaks
+
+
+### 🧪 Testing and Developer Tools
 - More model and logic unit tests
 - UI preview mock data consistency
 - Improved Core Data error reporting/logging
